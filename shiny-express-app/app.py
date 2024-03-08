@@ -16,8 +16,8 @@ import audioop
 # Constants for audio capture
 FORMAT = pyaudio.paInt16 # Audio format (16-bit PCM)
 CHANNELS = 1 # Mono audio
-RATE = 44100 # Sample rate
-CHUNK = 1024 # Number of audio frames per buffer
+RATE = 10000 #44100 # Sample rate
+CHUNK = 4000 # Number of audio frames per buffer
 
 ui.page_opts(title="Bikeshare availability in three cities", )
 
@@ -108,49 +108,37 @@ with ui.layout_columns():
             return render.DataTable(bike_data().head(1000))
 
 # Volume TRACKING ====
-        
+    
 
-import sounddevice as sd
-import numpy as np
-from scipy.io.wavfile import write
-import scipy.signal
+# def record_audio(duration=1, samplerate=44100):
+#     """Record audio for a given duration and samplerate."""
+#     print("Recording...")
+#     recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype='float64')
+#     sd.wait()  # Wait until recording is finished
+#     print("Recording done.")
+#     return recording
 
-def record_audio(duration=1, samplerate=44100):
-    """Record audio for a given duration and samplerate."""
-    print("Recording...")
-    recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype='float64')
-    sd.wait()  # Wait until recording is finished
-    print("Recording done.")
-    return recording
-
-def calculate_volume(audio_data):
-    """Calculate the RMS volume of the recorded audio."""
-    rms = np.sqrt(np.mean(audio_data**2))
-    return 20 * np.log10(rms)
+# def calculate_volume(audio_data):
+#     """Calculate the RMS volume of the recorded audio."""
+#     rms = np.sqrt(np.mean(audio_data**2))
+#     return 20 * np.log10(rms)
 
 # Record a short audio sample
-duration = 1  # seconds
-samplerate = 44100  # Hz
-audio_data = record_audio(duration, samplerate)
+# duration = 1  # seconds
+# samplerate = 44100  # Hz
+# audio_data = record_audio(duration, samplerate)
 
 
 
 @reactive.calc
-def camera_info():
+def audio_info():
     """The current volume level"""
     # Read raw audio data
-    # data = stream.read(CHUNK)
+    data = stream.read(CHUNK)
     # Calculate RMS volume
-    # rms = audioop.rms(data, 2) # Width=2 for format=paInt16
-    duration = 0.1  # seconds
-    samplerate = 44100  # Hz
-    audio_data = record_audio(duration, samplerate)
-    volume = calculate_volume(audio_data)
-
-
-    time.sleep(0.1)
-
-    return volume
+    rms = audioop.rms(data, 2) # Width=2 for format=paInt16
+    print(rms)
+    return rms
 
 
 
@@ -165,5 +153,5 @@ def camera_info():
 def update_plotly_camera():
     """Update Plotly camera using the hand tracking"""
     # info = smooth_camera_info() if input.use_smoothing() else camera_info()
-    info = camera_info()
+    info = audio_info()
     return info
