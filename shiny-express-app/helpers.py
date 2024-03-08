@@ -21,7 +21,7 @@ def get_city(stations):
         return "Error: More than one unique value in the 'city' column of DataFrame 'stations'."
 
 
-def show_city(stations):
+def show_city(stations, size=300):
     """
     city should be one of: "dc", "austin", or "chicago"
     """
@@ -63,10 +63,10 @@ def show_city(stations):
     )
 
     city = get_city(stations)
-
+    scale = size/200
     if city == "dc":
         center = (38.9072, -77.0369)
-        zoom = 10
+        zoom = 10*scale
     elif city == "austin":
         center = (30.2672, -97.7431)
         zoom = 13

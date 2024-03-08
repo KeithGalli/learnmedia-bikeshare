@@ -17,8 +17,8 @@ import audioop
 # Constants for audio capture
 FORMAT = pyaudio.paInt16 # Audio format (16-bit PCM)
 CHANNELS = 1 # Mono audio
-RATE = 2000 #44100 # Sample rate
-CHUNK = 4000 # Number of audio frames per buffer
+RATE = 1000 #44100 # Sample rate
+CHUNK = 2000 # Number of audio frames per buffer
 
 ui.page_opts(title="Bikeshare availability in three cities", )
 
@@ -94,7 +94,7 @@ with ui.layout_columns(col_widths=[5, 7]):
         ui.card_header("Station Map")
         @render_widget  
         def map():
-            return show_city(stations = station_data())
+            return show_city(stations = station_data(), size = audio_info())
             
     with ui.card():
         ui.card_header("Availability")
@@ -142,6 +142,7 @@ def audio_info():
     # Calculate RMS volume
     rms = audioop.rms(data, 2) # Width=2 for format=paInt16
     print(rms)
+    # stream.close()
     return rms
 
 
