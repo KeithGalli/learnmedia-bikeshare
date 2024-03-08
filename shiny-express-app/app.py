@@ -4,11 +4,31 @@ from shiny import reactive
 from shiny.express import input, ui, render
 from shinywidgets import render_widget  
 from faicons import icon_svg as icon
+from phoenix import info_smoother
+import time
 
 import shared
 from helpers import show_city, show_trend
 
+import pyaudio
+import audioop
+
+# Constants for audio capture
+FORMAT = pyaudio.paInt16 # Audio format (16-bit PCM)
+CHANNELS = 1 # Mono audio
+RATE = 44100 # Sample rate
+CHUNK = 1024 # Number of audio frames per buffer
+
 ui.page_opts(title="Bikeshare availability in three cities", )
+
+p = pyaudio.PyAudio()
+
+# Open stream for audio input
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
 
 with ui.sidebar():
     ui.input_radio_buttons(  
@@ -86,3 +106,64 @@ with ui.layout_columns():
         @render.data_frame  
         def table():
             return render.DataTable(bike_data().head(1000))
+
+# Volume TRACKING ====
+        
+
+import sounddevice as sd
+import numpy as np
+from scipy.io.wavfile import write
+import scipy.signal
+
+def record_audio(duration=1, samplerate=44100):
+    """Record audio for a given duration and samplerate."""
+    print("Recording...")
+    recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype='float64')
+    sd.wait()  # Wait until recording is finished
+    print("Recording done.")
+    return recording
+
+def calculate_volume(audio_data):
+    """Calculate the RMS volume of the recorded audio."""
+    rms = np.sqrt(np.mean(audio_data**2))
+    return 20 * np.log10(rms)
+
+# Record a short audio sample
+duration = 1  # seconds
+samplerate = 44100  # Hz
+audio_data = record_audio(duration, samplerate)
+
+
+
+@reactive.calc
+def camera_info():
+    """The current volume level"""
+    # Read raw audio data
+    # data = stream.read(CHUNK)
+    # Calculate RMS volume
+    # rms = audioop.rms(data, 2) # Width=2 for format=paInt16
+    duration = 0.1  # seconds
+    samplerate = 44100  # Hz
+    audio_data = record_audio(duration, samplerate)
+    volume = calculate_volume(audio_data)
+
+
+    time.sleep(0.1)
+
+    return volume
+
+
+
+# The raw data is a little jittery. Smooth it out by averaging a few samples
+# @reactive_smooth(n_samples=5, smoother=info_smoother)
+# @reactive.calc
+# def smooth_camera_info():
+#     return camera_info()
+
+
+@reactive.effect
+def update_plotly_camera():
+    """Update Plotly camera using the hand tracking"""
+    # info = smooth_camera_info() if input.use_smoothing() else camera_info()
+    info = camera_info()
+    return info
