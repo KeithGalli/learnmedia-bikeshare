@@ -38,6 +38,8 @@ def show_city(stations):
         )
     )
 
+    # size_factor = size/30
+
     geo_data = GeoData(
         geo_dataframe=gdf,
         style={

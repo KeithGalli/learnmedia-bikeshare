@@ -3,6 +3,7 @@
 
 from statistics import mean
 
+# def 
 
 
 def info_smoother(points):

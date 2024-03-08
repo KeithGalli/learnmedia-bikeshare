@@ -2,7 +2,8 @@
   
 from shiny import reactive
 from shiny.express import input, ui, render
-from shinywidgets import render_widget  
+from shinywidgets import render_widget
+from shiny import reactive
 from faicons import icon_svg as icon
 from phoenix import info_smoother
 import time
@@ -16,7 +17,7 @@ import audioop
 # Constants for audio capture
 FORMAT = pyaudio.paInt16 # Audio format (16-bit PCM)
 CHANNELS = 1 # Mono audio
-RATE = 10000 #44100 # Sample rate
+RATE = 2000 #44100 # Sample rate
 CHUNK = 4000 # Number of audio frames per buffer
 
 ui.page_opts(title="Bikeshare availability in three cities", )
@@ -62,8 +63,10 @@ with ui.layout_columns():
               .sum()
               .max()
             )
-            
-            return f"{n_bikes:,}"
+            print("HERE")
+            print(audio_info())
+            return f"{audio_info()}"
+            # return f"{n_bikes:,}"
     
     with ui.value_box(
         showcase = icon("square", style="regular"),
@@ -134,6 +137,7 @@ with ui.layout_columns():
 def audio_info():
     """The current volume level"""
     # Read raw audio data
+    reactive.invalidate_later(2)
     data = stream.read(CHUNK)
     # Calculate RMS volume
     rms = audioop.rms(data, 2) # Width=2 for format=paInt16
